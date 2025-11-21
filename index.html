@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>网站统计仪表板 - 实时数据分析</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @keyframes pulse-dot {
@@ -57,7 +56,7 @@
     <!-- 主要内容区域 -->
     <div class="container mx-auto px-6 py-8">
         <!-- 统计卡片区域 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- 今日IP访问量 -->
             <div class="bg-white rounded-lg shadow-md p-6 card-hover">
                 <div class="flex items-center justify-between">
@@ -66,7 +65,7 @@
                         <p class="text-3xl font-bold text-gray-800 number-change" id="todayIP">0</p>
                         <p class="text-sm mt-2 ip-increase">
                             <i class="fas fa-arrow-up"></i> 
-                            <span id="ipProgress">0%</span> 今日进度
+                            <span id="ipProgress">0.0%</span> 今日进度
                         </p>
                     </div>
                     <div class="bg-blue-100 p-3 rounded-full">
@@ -123,8 +122,8 @@
                 </div>
             </div>
         </div>
+    </div>
 
-    
     <script>
         // 更新当前时间
         function updateTime() {
@@ -147,12 +146,12 @@
         let currentIP = 0;
         let lastDate = '';
 
-        // 24小时访问权重（模拟真实访问模式）
+        // 24小时访问权重（模拟真实访问模式，更平滑的增长）
         const hourlyWeights = [
-            0.01, 0.01, 0.01, 0.01, 0.01, 0.01, // 0-5点：低谷期
-            0.02, 0.03, 0.05, 0.08, 0.09, 0.08, // 6-11点：上午高峰
-            0.06, 0.05, 0.07, 0.08, 0.09, 0.08, // 12-17点：下午高峰
-            0.06, 0.04, 0.03, 0.02, 0.02, 0.01  // 18-23点：晚间下降
+            0.005, 0.005, 0.005, 0.005, 0.005, 0.005, // 0-5点：低谷期
+            0.015, 0.025, 0.045, 0.075, 0.085, 0.075, // 6-11点：上午高峰
+            0.055, 0.045, 0.065, 0.075, 0.085, 0.075, // 12-17点：下午高峰
+            0.055, 0.035, 0.025, 0.015, 0.015, 0.005  // 18-23点：晚间下降
         ];
 
         // 计算当前时间应该达到的IP数量
@@ -206,144 +205,17 @@
             const pageViews = Math.floor(ip * 2.8);
             pageViewsElement.textContent = pageViews.toLocaleString('zh-CN');
             
-            // 更新进度百分比
+            // 更新进度百分比（显示一位小数，变化更平缓）
             const progress = ((ip / targetIP) * 100).toFixed(1);
             progressElement.textContent = `${progress}%`;
-        }
-
-        // 初始化图表
-        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
-        const hourlyChart = new Chart(hourlyCtx, {
-            type: 'line',
-            data: {
-                labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                datasets: [{
-                    label: 'IP访问量',
-                    data: Array.from({length: 24}, (_, i) => Math.floor(targetIP * hourlyWeights[i])),
-                    borderColor: 'rgb(99, 102, 241)',
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('zh-CN');
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // 流量来源分布图
-        const sourceCtx = document.getElementById('sourceChart').getContext('2d');
-        const sourceChart = new Chart(sourceCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['直接访问', '搜索引擎', '社交媒体', '外链推荐', '广告投放'],
-                datasets: [{
-                    data: [35, 28, 18, 12, 7],
-                    backgroundColor: [
-                        'rgb(99, 102, 241)',
-                        'rgb(34, 197, 94)',
-                        'rgb(251, 146, 60)',
-                        'rgb(147, 51, 234)',
-                        'rgb(236, 72, 153)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    }
-                }
-            }
-        });
-
-        // 设备类型统计图
-        const deviceCtx = document.getElementById('deviceChart').getContext('2d');
-        const deviceChart = new Chart(deviceCtx, {
-            type: 'bar',
-            data: {
-                labels: ['桌面端', '移动端', '平板端'],
-                datasets: [{
-                    label: '访问量',
-                    data: [95000, 110000, 15000],
-                    backgroundColor: [
-                        'rgba(99, 102, 241, 0.8)',
-                        'rgba(34, 197, 94, 0.8)',
-                        'rgba(251, 146, 60, 0.8)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('zh-CN');
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // 更新热门页面访问量（基于当前IP计算）
-        function updatePageViews() {
-            const pageElements = document.querySelectorAll('.page-views');
-            // 基础比例（基于总页面浏览量）
-            const baseRatios = [0.205, 0.146, 0.131, 0.098, 0.084];
-            
-            pageElements.forEach((element, index) => {
-                // 计算该页面的访问量（基于当前总IP数乘以比例再乘以2.8）
-                const pageView = Math.floor(currentIP * 2.8 * baseRatios[index]);
-                element.textContent = `${pageView.toLocaleString('zh-CN')} 访问`;
-            });
-        }
-
-        // 更新地域百分比（保持稳定，小幅波动）
-        function updateRegionPercent() {
-            const regionElements = document.querySelectorAll('.region-percent');
-            const baseValues = [35.2, 18.7, 12.3, 9.8, 7.5, 16.5];
-            
-            regionElements.forEach((element, index) => {
-                // 只允许±0.5%的小幅波动
-                const fluctuation = (Math.random() - 0.5) * 0.01;
-                const newValue = (baseValues[index] + fluctuation).toFixed(1);
-                element.textContent = `${newValue}%`;
-            });
         }
 
         // 更新平均停留时间（小幅波动）
         function updateAvgTime() {
             const baseMinutes = 3;
             const baseSeconds = 45;
-            // 只允许±15秒的波动
-            const fluctuation = Math.floor((Math.random() - 0.5) * 30);
+            // 只允许±10秒的波动（减少波动幅度）
+            const fluctuation = Math.floor((Math.random() - 0.5) * 20);
             
             let totalSeconds = baseMinutes * 60 + baseSeconds + fluctuation;
             const minutes = Math.floor(totalSeconds / 60);
@@ -355,8 +227,8 @@
         // 更新跳出率（小幅波动）
         function updateBounceRate() {
             const baseRate = 42.3;
-            // 只允许±1%的波动
-            const fluctuation = (Math.random() - 0.5) * 2;
+            // 只允许±0.5%的波动（减少波动幅度）
+            const fluctuation = (Math.random() - 0.5) * 1;
             const newRate = (baseRate + fluctuation).toFixed(1);
             
             document.getElementById('bounceRate').textContent = `${newRate}%`;
@@ -365,23 +237,15 @@
         // 模拟实时数据更新
         function updateRealtimeData() {
             updateIPDisplay();
-            updatePageViews();
-            updateRegionPercent();
             updateAvgTime();
             updateBounceRate();
-            
-            // 更新24小时图表的当前小时数据点
-            const currentHour = new Date().getHours();
-            const currentValue = Math.floor(targetIP * hourlyWeights[currentHour]);
-            hourlyChart.data.datasets[0].data[currentHour] = currentValue;
-            hourlyChart.update('none');
         }
 
         // 初始化
         updateRealtimeData();
         
-        // 设置定时更新
-        setInterval(updateRealtimeData, 1000); // 每秒更新一次数据
+        // 设置定时更新（每2秒更新一次，使变化更平缓）
+        setInterval(updateRealtimeData, 2000);
     </script>
 </body>
 </html>
